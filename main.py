@@ -37,29 +37,30 @@ if uploaded_file:
 
     if st.button("Enhance Image"):
         with st.spinner("Enhancing image..."):
-            input_image_path = "/tmp/input_image.jpg"
-            image.save(input_image_path)
-            logging.info(f"Image saved to {input_image_path}")
+            try:
+                enhanced_image = enhance_with_gfpgan(image, upscale=rescaling_factor)
+                if enhanced_image:
+                    logging.info("Image enhancement successful.")
+                    st.image(enhanced_image, caption="Enhanced Image", use_container_width=True)
 
-            enhanced_image = enhance_with_gfpgan(input_image_path, upscale=rescaling_factor)
+                    img_byte_arr = io.BytesIO()
+                    enhanced_image.save(img_byte_arr, format="JPEG", quality=95)
+                    img_byte_arr = img_byte_arr.getvalue()
 
-            if enhanced_image:
-                logging.info("Image enhancement successful.")
-                st.image(enhanced_image, caption="Enhanced Image", use_container_width=True)
+                    st.download_button(
+                        label="Download Enhanced Image",
+                        data=img_byte_arr,
+                        file_name="enhanced_image.jpg",
+                        mime="image/jpeg"
+                    )
+                else:
+                    logging.warning("Image enhancement failed.")
+                    st.error("Image enhancement failed. Please try again.")
+            except Exception as e:
+                logging.error(f"Error during image enhancement: {e}")
+                st.error(f"An error occurred during the enhancement process: {e}")
 
-                img_byte_arr = io.BytesIO()
-                enhanced_image.save(img_byte_arr, format="JPEG", quality=95)
-                img_byte_arr = img_byte_arr.getvalue()
 
-                st.download_button(
-                    label="Download Enhanced Image",
-                    data=img_byte_arr,
-                    file_name="enhanced_image.jpg",
-                    mime="image/jpeg"
-                )
-            else:
-                logging.warning("Image enhancement failed.")
-                st.error("Image enhancement failed. Please try again.")
 
 
 
